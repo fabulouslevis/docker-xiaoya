@@ -1,0 +1,44 @@
+x-shared-env: &shared-env
+  TZ: ${TZ:-Asia/Shanghai}
+  ALIYUN_TOKEN: ${ALIYUN_TOKEN:-}
+  ALIYUN_OPEN_TOKEN: ${ALIYUN_OPEN_TOKEN:-}
+  ALIYUN_FOLDER_ID: ${ALIYUN_FOLDER_ID:-}
+  QUARK_COOKIE: ${QUARK_COOKIE:-}
+  PAN115_COOKIE: ${PAN115_COOKIE:-}
+  ALIYUN_TO_115: ${ALIYUN_TO_115:-}
+  PAN115_FOLDER_ID: ${PAN115_FOLDER_ID:-}
+  AUTO_CLEAR_ENABLED: ${AUTO_CLEAR_ENABLED:-}
+  AUTO_CLEAR_INTERVAL: ${AUTO_CLEAR_INTERVAL:-}
+  PIKPAK_USER: ${PIKPAK_USER:-}
+  TVBOX_SECURITY: ${TVBOX_SECURITY:-}
+  WEBDAV_PASSWORD: ${WEBDAV_PASSWORD:-}
+  EMBY_ADDR: ${EMBY_ADDR:-http://emby:6908}
+  ALIST_ADDR: ${ALIST_ADDR:-http://alist:5678}
+  EMBY_ENABLED: ${EMBY_ENABLED:-true}
+  AUTO_UPDATE_EMBY_CONFIG_ENABLED: ${AUTO_UPDATE_EMBY_CONFIG_ENABLED:-false}
+  AUTO_UPDATE_EMBY_INTERVAL: ${AUTO_UPDATE_EMBY_INTERVAL:-}
+  AUTO_UPDATE_EMBY_METADATA_ENABLED: ${AUTO_UPDATE_EMBY_METADATA_ENABLED:-true}
+  EMBY_APIKEY: ${EMBY_APIKEY:-}
+  CLEAR_TEMP: ${CLEAR_TEMP:-}
+
+services:
+  alist:
+    image: ghcr.io/monlor/xiaoya-alist:latest
+    volumes:
+      - xiaoya:/data
+    ports:
+      - "5678:5678"
+      - "2345:2345"
+      - "2346:2346"
+    environment:
+      <<: *shared-env
+    restart: unless-stopped
+    networks:
+      - default
+
+networks:
+  default:
+
+
+volumes:
+  xiaoya:
