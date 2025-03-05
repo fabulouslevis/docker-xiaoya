@@ -22,8 +22,8 @@ for item1 in $(yq eval ". | to_entries[] | .key" $src_yml); do
             for item3 in $(yq eval ".$item1.$item2 | to_entries[] | .key" $src_yml); do              
                 if [ $item3 == "env_file" ] || [ $item3 == "environment" ]; then
                     yq eval ".$item1.$item2.environment.<< alias= \"shared-env\"" $yml -i
-                    if [ $(yq eval ".$item1.$item2 | has(\"environment\")" $src_yml) == true ]; then
-                        if [ $(yq eval ".$item1.$item2.environment  | type" $src_yml) == "!!seq" ]; then
+                    case $(yq eval ".$item1.$item2.environment  | type" $src_yml) in
+                        !!seq)
                             for kvs in $(yq eval ".$item1.$item2.environment[]" $src_yml); do
                                 if [[ "$kvs" =~ ^([^=]+)=(.*)$ ]]; then
                                     key="${BASH_REMATCH[1]}"
@@ -31,13 +31,17 @@ for item1 in $(yq eval ". | to_entries[] | .key" $src_yml); do
                                     yq eval ".$item1.$item2.environment.$key = \"$value\"" $yml -i
                                 fi                                
                             done
-                        else
+                            ;;
+                        !!map)
                             yq eval ".$item1.$item2.environment += load(\"$src_yml\").$item1.$item2.environment" $yml -i
-                        fi
-                    fi
-                    continue                    
-                fi
-                yq eval ".$item1.$item2.$item3 = load(\"$src_yml\").$item1.$item2.$item3" $yml -i 
+                            ;;
+                        *)
+                            continue
+                            ;;
+                    esac
+                else
+                    yq eval ".$item1.$item2.$item3 = load(\"$src_yml\").$item1.$item2.$item3" $yml -i                 
+                fi                
             done
         done
     else  
