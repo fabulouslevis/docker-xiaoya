@@ -26,9 +26,11 @@ for item1 in $(yq eval ". | to_entries[] | .key" $src_yml); do
                     if [ $(yq eval ".$item1.$item2 | has(\"environment\")" $src_yml) == true ]; then
                         if [ $(yq eval ".$item1.$item2.environment  | type" $src_yml) == "!!seq" ]; then
                             for kvs in $(yq eval ".$item1.$item2.environment[]" $src_yml); do
-                                key=${kvs%=*}
-                                value=${kvs#*=}
-                                yq eval ".$item1.$item2.environment.$key = \"$value\"" $yml -i
+                                if [[ "$kvs" =~ ^([^=]+)=(.*)$ ]]; then
+                                    key="${BASH_REMATCH[1]}"
+                                    value="${BASH_REMATCH[2]}" 
+                                    yq eval ".$item1.$item2.environment.$key = \"$value\"" $yml -i
+                                fi                                
                             done
                         else
                             yq eval ".$item1.$item2.environment += load(\"$src_yml\").$item1.$item2.environment" $yml -i
