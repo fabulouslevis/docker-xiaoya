@@ -20,7 +20,6 @@ x-shared-env: &shared-env
   AUTO_UPDATE_EMBY_METADATA_ENABLED: ${AUTO_UPDATE_EMBY_METADATA_ENABLED:-true}
   EMBY_APIKEY: ${EMBY_APIKEY:-}
   CLEAR_TEMP: ${CLEAR_TEMP:-}
-
 services:
   alist:
     image: ghcr.io/monlor/xiaoya-alist:latest
@@ -32,7 +31,7 @@ services:
       - "2346:2346"
     environment:
       <<: *shared-env
-      AUTO_UPDATE_MEDIA_ADDR: true
+      AUTO_UPDATE_MEDIA_ADDR: "true"
     restart: unless-stopped
     networks:
       - default
@@ -67,11 +66,8 @@ services:
     restart: unless-stopped
     networks:
       - default
-
 networks:
   default:
-
-
 volumes:
   xiaoya:
   media:
