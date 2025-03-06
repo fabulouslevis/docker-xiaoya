@@ -1,4 +1,4 @@
-x-file-env0: &file-env0
+x-env-file0: &env-file0
   TZ: ${TZ:-Asia/Shanghai}
   ALIYUN_TOKEN: ${ALIYUN_TOKEN:-}
   ALIYUN_OPEN_TOKEN: ${ALIYUN_OPEN_TOKEN:-}
@@ -30,7 +30,7 @@ services:
       - "2345:2345"
       - "2346:2346"
     environment:
-      <<: *file-env0
+      <<: *env-file0
       AUTO_UPDATE_MEDIA_ADDR: "true"
     restart: unless-stopped
     networks:
@@ -38,7 +38,7 @@ services:
   metadata:
     image: ghcr.io/monlor/xiaoya-metadata:latest
     environment:
-      <<: *file-env0
+      <<: *env-file0
     volumes:
       - xiaoya:/etc/xiaoya
       - media:/media/xiaoya
@@ -53,7 +53,7 @@ services:
   emby:
     image: ghcr.io/monlor/xiaoya-embyserver:latest
     environment:
-      <<: *file-env0
+      <<: *env-file0
     depends_on:
       - metadata
       - alist

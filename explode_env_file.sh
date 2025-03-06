@@ -2,7 +2,7 @@
 
 src_yml=$1
 yml=$2
-name=${3:-"file-env"}
+name=${3:-"env-file"}
 
 declare -A env_file_name_set
 declare -A env_file_path_set
