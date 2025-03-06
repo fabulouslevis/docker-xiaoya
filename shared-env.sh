@@ -5,48 +5,52 @@ yml=$2
 env=${3:-"env"}
 
 echo "" > $yml
-yq eval ".x-shared-env anchor=\"shared-env\"" $yml -i
+yq ".x-shared-env anchor = \"shared-env\"" $yml -i
 while IFS= read -r line; do
     if [[ "$line" =~ ^([^=]+)=(.*)$ ]]; then
         key="${BASH_REMATCH[1]}"
         value="${BASH_REMATCH[2]}"
-        yq eval ".x-shared-env.$key = \"\${$key:-$value}\"" $yml -i
-    else
-        continue
+        yq ".x-shared-env.$key = \"\${$key:-$value}\"" $yml -i
     fi
 done < <(grep -vE "^(#.*|\s*)$" "$env") 
 
-for item1 in $(yq eval ". | to_entries[] | .key" $src_yml); do
+for item1 in $(yq ". | to_entries[] | .key" $src_yml); do
     if [ $item1 == "services" ]; then 
-        for item2 in $(yq eval ".$item1 | to_entries[] | .key" $src_yml); do
-            for item3 in $(yq eval ".$item1.$item2 | to_entries[] | .key" $src_yml); do              
-                if [ $item3 == "env_file" ] || [ $item3 == "environment" ]; then
-                    yq eval ".$item1.$item2.environment.<< alias= \"shared-env\"" $yml -i
-                    case $(yq eval ".$item1.$item2.environment  | type" $src_yml) in
-                        !!seq)
-                            for kvs in $(yq eval ".$item1.$item2.environment[]" $src_yml); do
-                                if [[ "$kvs" =~ ^([^=]+)=(.*)$ ]]; then
-                                    key="${BASH_REMATCH[1]}"
-                                    value="${BASH_REMATCH[2]}" 
-                                    yq eval ".$item1.$item2.environment.$key = \"$value\"" $yml -i
-                                fi                                
-                            done
-                            ;;
-                        !!map)
-                            yq eval ".$item1.$item2.environment += load(\"$src_yml\").$item1.$item2.environment" $yml -i
-                            ;;
-                        *)
-                            continue
-                            ;;
-                    esac
-                else
-                    yq eval ".$item1.$item2.$item3 = load(\"$src_yml\").$item1.$item2.$item3" $yml -i                 
-                fi                
-            done
+        for item2 in $(yq ".$item1 | to_entries[] | .key" $src_yml); do
+            if [ $(yq ".$item1.$item2 | has(\"env_file\")" $src_yml) == "true" ]; then
+                for item3 in $(yq ".$item1.$item2 | to_entries[] | .key" $src_yml); do
+                    if [ $item3 == "env_file" ]; then
+                        yq ".$item1.$item2.environment.<< alias = \"shared-env\"" $yml -i
+                        case $(yq ".$item1.$item2.environment | type" $src_yml) in
+                            !!seq)
+                                for kvs in $(yq ".$item1.$item2.environment[]" $src_yml); do
+                                    if [[ "$kvs" =~ ^([^=]+)=(.*)$ ]]; then
+                                        key="${BASH_REMATCH[1]}"
+                                        value="${BASH_REMATCH[2]}" 
+                                        yq ".$item1.$item2.environment.$key = \"$value\"" $yml -i
+                                    fi                                
+                                done
+                                ;;
+                            !!map)
+                                yq ".$item1.$item2.environment += load(\"$src_yml\").$item1.$item2.environment" $yml -i
+                                ;;
+                            *)
+                                continue
+                                ;;
+                        esac
+                    elif [ $item3 == "environment" ]; then
+                        continue
+                    else
+                        yq ".$item1.$item2.$item3 = load(\"$src_yml\").$item1.$item2.$item3" $yml -i                 
+                    fi                
+                done                
+            else
+                yq ".$item1.$item2 = load(\"$src_yml\").$item1.$item2" $yml -i
+            fi        
         done
     else  
-        yq eval ".$item1 = load(\"$src_yml\").$item1" $yml -i      
+        yq ".$item1 = load(\"$src_yml\").$item1" $yml -i      
     fi    
 done
 
-yq eval "(... | select(tag == \"!!merge\")) tag = \"\"" $yml -i
+yq "(... | select(tag == \"!!merge\")) tag = \"\"" $yml -i
