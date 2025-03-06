@@ -1,4 +1,4 @@
-x-shared-env: &shared-env
+x-file-env0: &file-env0
   TZ: ${TZ:-Asia/Shanghai}
   ALIYUN_TOKEN: ${ALIYUN_TOKEN:-}
   ALIYUN_OPEN_TOKEN: ${ALIYUN_OPEN_TOKEN:-}
@@ -30,7 +30,7 @@ services:
       - "2345:2345"
       - "2346:2346"
     environment:
-      <<: *shared-env
+      <<: *file-env0
     restart: unless-stopped
     networks:
       - default
