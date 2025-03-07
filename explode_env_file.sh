@@ -20,6 +20,7 @@ for service in $(yq ".services | to_entries[] | .key" $src_yml); do
     done
 done
 
+mkdir -p $(dirname $yml)
 echo "" > $yml
 
 for env_file in ${!env_file_name_set[@]}; do
