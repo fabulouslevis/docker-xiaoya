@@ -4,36 +4,32 @@ src_yml=$1
 yml=$2
 name=${3:-"env-file"}
 
+mkdir -p $(dirname $yml)
+echo "" > $yml
+
 declare -A env_file_name_set
-declare -A env_file_path_set
 for service in $(yq ".services | to_entries[] | .key" $src_yml); do
     for env_file in $(yq ".services.$service.env_file[]" $src_yml); do
         if [ -n "${env_file_name_set[$env_file]}" ]; then
             continue
-        fi
-        env_file_name_set[$env_file]="$name${#env_file_name_set[@]}"
-        if [[ $env_file != /* ]]; then
-            env_file_path_set[$env_file]=$(realpath $(dirname $src_yml)/$env_file)
         else
-            env_file_path_set[$env_file]=$env_file
-        fi        
-    done
-done
-
-mkdir -p $(dirname $yml)
-echo "" > $yml
-
-for env_file in ${!env_file_name_set[@]}; do
-    env_file_name=${env_file_name_set[$env_file]}
-    env_file_path=${env_file_path_set[$env_file]}
-    yq ".x-$env_file_name anchor = \"$env_file_name\"" $yml -i
-    while IFS= read -r line; do
-        if [[ "$line" =~ ^([^=]+)=(.*)$ ]]; then
-            key="${BASH_REMATCH[1]}"
-            value="${BASH_REMATCH[2]}"
-            yq ".x-$env_file_name.$key = \"\${$key:-$value}\"" $yml -i
+            env_file_name_set[$env_file]="$name${#env_file_name_set[@]}"
         fi
-    done < <(grep -vE "^(#.*|\s*)$" "$env_file_path") 
+        env_file_name=${env_file_name_set[$env_file]}
+        if [[ $env_file != /* ]]; then
+            env_file_path=$(realpath $(dirname $src_yml)/$env_file)
+        else
+            env_file_path=$env_file
+        fi 
+        yq ".x-$env_file_name anchor = \"$env_file_name\"" $yml -i
+        while IFS= read -r line; do
+            if [[ "$line" =~ ^([^=]+)=(.*)$ ]]; then
+                key="${BASH_REMATCH[1]}"
+                value="${BASH_REMATCH[2]}"
+                yq ".x-$env_file_name.$key = \"\${$key:-$value}\"" $yml -i
+            fi
+        done < <(grep -vE "^(#.*|\s*)$" "$env_file_path") 
+    done
 done
 
 for item1 in $(yq ". | to_entries[] | .key" $src_yml); do
