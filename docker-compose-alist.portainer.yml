@@ -22,7 +22,7 @@ x-env-file0: &env-file0
   CLEAR_TEMP: ${CLEAR_TEMP:-}
 services:
   alist:
-    image: ghcr.io/monlor/xiaoya-alist:latest
+    image: ghcr.io/monlor/xiaoya-alist:${ALIST_IMAGE_TAG:-latest}
     volumes:
       - xiaoya:/data
     ports:

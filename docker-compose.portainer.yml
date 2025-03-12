@@ -22,7 +22,7 @@ x-env-file0: &env-file0
   CLEAR_TEMP: ${CLEAR_TEMP:-}
 services:
   alist:
-    image: ghcr.io/monlor/xiaoya-alist:latest
+    image: ghcr.io/monlor/xiaoya-alist:${ALIST_IMAGE_TAG:-latest}
     volumes:
       - xiaoya:/data
     ports:
@@ -36,7 +36,7 @@ services:
     networks:
       - default
   metadata:
-    image: ghcr.io/monlor/xiaoya-metadata:latest
+    image: ghcr.io/monlor/xiaoya-metadata:${METADATA_IMAGE_TAG:-latest}
     environment:
       <<: *env-file0
     volumes:
@@ -51,7 +51,7 @@ services:
     networks:
       - default
   emby:
-    image: ghcr.io/monlor/xiaoya-embyserver:latest
+    image: ghcr.io/monlor/xiaoya-embyserver:${EMBY_IMAGE_TAG:-latest}
     environment:
       <<: *env-file0
     depends_on:
